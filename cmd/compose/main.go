@@ -15,6 +15,8 @@ import (
 	"github.com/mikenai/gowork/cmd/compose/pkg/stub"
 	"github.com/mikenai/gowork/cmd/compose/pkg/usersapi"
 	"github.com/mikenai/gowork/pkg/logger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -58,10 +60,13 @@ func main() {
 		Http:    cl,
 	}
 
-	users := &usersapi.Client{
-		BaseURL: "http://localhost:8080",
-		Http:    cl,
+	conn, err := grpc.Dial("localhost:5050", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		defaultLog.Fatal().Err(err).Msg("failed to establish grpc conn")
 	}
+	defer conn.Close()
+
+	users := usersapi.NewClientGRPC(conn)
 
 	h := handlers.Handler{
 		PostsAPI:    stub,
