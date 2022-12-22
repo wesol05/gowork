@@ -13,7 +13,7 @@ import (
 	"github.com/mikenai/gowork/cmd/compose/config"
 	"github.com/mikenai/gowork/cmd/compose/handlers"
 	"github.com/mikenai/gowork/cmd/compose/pkg/stub"
-	pb "github.com/mikenai/gowork/internal/proto"
+	"github.com/mikenai/gowork/cmd/compose/pkg/usersapi"
 	"github.com/mikenai/gowork/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -61,14 +61,17 @@ func main() {
 	}
 
 	conn, err := grpc.Dial("localhost:5050", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		defaultLog.Fatal().Err(err).Msg("failed to establish grpc conn")
+	}
 	defer conn.Close()
 
-	users := pb.NewUsersServiceClient(conn)
+	users := usersapi.NewClientGRPC(conn)
 
 	h := handlers.Handler{
 		PostsAPI:    stub,
 		ProfilesAPI: stub,
-		UsersGRPC:   users,
+		UsersAPI:    users,
 
 		Log: log,
 	}

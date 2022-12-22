@@ -8,10 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/mikenai/gowork/cmd/compose/pkg/stub"
 	"github.com/mikenai/gowork/cmd/compose/pkg/usersapi"
-	pb "github.com/mikenai/gowork/internal/proto"
 	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
 )
 
 type Posts interface {
@@ -23,13 +21,13 @@ type Profiles interface {
 }
 
 type Users interface {
-	GetUser(ctx context.Context, in *pb.GetUserRequest, opts ...grpc.CallOption) (*pb.UserResponse, error)
+	GetUser(ctx context.Context, id string) (usersapi.User, error)
 }
 
 type Handler struct {
 	PostsAPI    Posts
 	ProfilesAPI Profiles
-	UsersGRPC   Users
+	UsersAPI    Users
 
 	Log zerolog.Logger
 }
@@ -67,11 +65,11 @@ func (h Handler) UserPage(w http.ResponseWriter, r *http.Request) {
 	})
 
 	eg.Go(func() error {
-		user, err := h.UsersGRPC.GetUser(batchCtx, &pb.GetUserRequest{Id: id})
+		user, err := h.UsersAPI.GetUser(batchCtx, id)
 		if err != nil {
 			return err
 		}
-		res.User = usersapi.User{ID: user.Id, Name: user.Name}
+		res.User = user
 		return nil
 	})
 

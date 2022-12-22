@@ -10,17 +10,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type User struct {
-	ID   string
-	Name string
-}
-
-type Client struct {
+type ClientHTTP struct {
 	BaseURL string
 	Http    http.Client
 }
 
-func (cl *Client) GetUser(ctx context.Context, id string) (User, error) {
+func (cl *ClientHTTP) GetUser(ctx context.Context, id string) (User, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
 		cl.BaseURL+fmt.Sprintf("/users/%s", id), nil)
 	if err != nil {

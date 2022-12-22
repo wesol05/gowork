@@ -19,6 +19,13 @@ type UsersGRPC struct {
 	log   zerolog.Logger
 }
 
+func NewUsersGRPC(users users.Service, log zerolog.Logger) *UsersGRPC {
+	return &UsersGRPC{
+		users: users,
+		log:   log,
+	}
+}
+
 func (grpc *UsersGRPC) GetUser(ctx context.Context, in *pb.GetUserRequest) (*pb.UserResponse, error) {
 	usr, err := grpc.users.GetOne(ctx, in.Id)
 	if err != nil {
@@ -33,11 +40,4 @@ func (grpc *UsersGRPC) GetUser(ctx context.Context, in *pb.GetUserRequest) (*pb.
 
 	grpc.log.Info().Msgf("Fetch %s: %s", usr.ID, usr.Name)
 	return &pb.UserResponse{Id: usr.ID, Name: usr.Name}, nil
-}
-
-func NewUsersGRPC(users users.Service, log zerolog.Logger) *UsersGRPC {
-	return &UsersGRPC{
-		users: users,
-		log:   log,
-	}
 }
